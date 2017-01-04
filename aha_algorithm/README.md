@@ -24,3 +24,5 @@
 ## c04 第四章 万能的搜索
 `s02`, 解救小哈（深度搜索，作者John E. Hopcropf和Robert E. Tarjan）
 `s03`, 层层递进-广度优先搜索(Edward F. Moore"如何从迷宫中寻找出路"提出的解决方案)
+`s05`, 宝岛探险(Floodfill,漫水/种子填充法, windows画板填充也是这个算法)
+`s06`, 水管工游戏
