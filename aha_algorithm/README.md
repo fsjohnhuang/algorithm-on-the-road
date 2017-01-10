@@ -29,7 +29,6 @@
 
 ## c05 第五章 图的遍历
 图，由定点和边组成
-
 邻接矩阵(adjacency matrix),图的顺序存储结构
 G=(V, E), G为图，V为顶点，E为边．
 顶点作为x,y轴坐标，数组元素表示两个顶点间是否存在边(1有,0没有)，或表示权重
@@ -75,3 +74,6 @@ Graph *create_graph(const unsigned int vex_num){
 	return g;
 }
 ```
+
+`s01_dfs`, 深度优先遍历(采用了邻接矩阵)
+`s01_bfs`, 广度优先遍历(采用了邻接表)
