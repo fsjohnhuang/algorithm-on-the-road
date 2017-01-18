@@ -30,6 +30,16 @@ for (int i = 0; i < 3; i++){
 OS相关类型,32位OS即等于unsigned int,64位OS即等于long unsigned int.
 C中位于`<stddef.h>`,C++中位于`<cstddef.h>`.
 
+## 数据模型表示法
+`I`:int
+`L`:long
+`LL`:long long
+`P`:非函数的指针类型
+示例：
+1. `I16P32`表示int占16bit,指针占32bit;
+2. `I16LP32`表示int占16bit,long和指针占32bit.
+P为32表示寻址空间为2^32byte
+
 ## QA
 ### 虽然写了`#include <math.h>`但运行时报`undefined reference to 'pow'`
 原因：动态链接失败导致找不到pow定义
