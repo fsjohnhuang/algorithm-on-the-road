@@ -30,39 +30,33 @@ void swap(node_t *f, node_t *s){
 	*s = tmp;
 }
 
-typedef int (*either)(tree_t, const int , const int , const int);
-int min(tree_t t, const int count, const int f, const int s){
+int min(tree_t t, const int count, int f, int s){
 	if (s >= count) return f;
 	return *(t+f) > *(t+s) ? s : f;
 }
-int max(tree_t t, const int count, const int f, const int s){
+int max(tree_t t, const int count, int f, int s){
 	if (s >= count) return f;
 	return *(t+f) > *(t+s) ? f : s;
 }
 
-typedef int (*cond)(tree_t, const int , const int);
+typedef int (*cond)(tree_t, int ,int);
 // 最小堆
-int min_heap(tree_t t, const int curr, const int next){
+int min_heap(tree_t t, int curr, int next){
 	return *(t+curr) > *(t+next);
 }
 // 最大堆
-int max_heap(tree_t t, const int curr, const int next){
+int max_heap(tree_t t, int curr, int next){
 	return *(t+curr) < *(t+next);
 }
 
-typedef struct {
-	cond cfn;
-	either efn;
-} cond_t;
-
-void shiftdown(tree_t t, const int count, const int pos, cond_t *c){
+void shiftdown(tree_t t, const int count, const int pos, cond c){
 	int curr = pos;
 	int next = curr * 2;
 	int swapped = 1;
 	while (next < count && swapped){
 		swapped = 0;
-		next = c->efn(t, count, next, next+1);
-		if (c->cfn(t, curr, next)){
+		next = min(t, count, next, next+1);
+		if (c(t, curr, next)){
 			swapped = 1;
 			swap(t+curr, t+next);
 			curr = next;
@@ -71,20 +65,38 @@ void shiftdown(tree_t t, const int count, const int pos, cond_t *c){
 	}
 }
 
+node_t *heapsort(tree_t t, const int count){
+	node_t *sorted = (node_t *)calloc(count-1, sizeof(node_t));
+
+	int t_count = count;
+	node_t root, last;
+	while (t_count-->1) {
+		// 移除根节点
+		root = *(t+1);
+		*(sorted+count-t_count-1) = root;
+		// 将最后一个移动到根节点
+		*(t+1) = *(t+t_count);
+		// 向下调整
+		shiftdown(t, t_count, 1, min_heap);
+	}
+
+	return sorted;
+}
+
 int main(int argc, int **argv){
 	node_t nodes[] = {IGNORE, 99,23,45,9,5,54};
 	int count = sizeof(nodes)/sizeof(node_t);
 	tree_t t = tree_create(nodes, count);
-	cond_t *c = (cond_t *)malloc(sizeof(cond_t));
-	c->cfn = max_heap;
-	c->efn = max;
 	for (int i = count / 2; i >= 1; i--) {
-		shiftdown(t, count, i, c);
+		shiftdown(t, count, i, min_heap);
 	}
-
 	tree_print(t, count);
 
-	free(c);
-	free(t);
+	printf("\n");
+	node_t *sorted = heapsort(t, count);
+	for (int i = 0; i < count-1; i++) {
+		printf(" %d ", *(sorted+i));
+	}
+
 	return 0;
 }
