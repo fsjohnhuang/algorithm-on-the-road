@@ -18,21 +18,21 @@ int kruskal(const graph_t *, int *e_idxs);
 
 int main(int argc, int **argv){
 	graph_t *g = create_graph(5);
-	/*add_edge(g, 0, 1, 3);
+	add_edge(g, 0, 1, 3);
 	add_edge(g, 0, 2, 2);
 	add_edge(g, 1, 2, 3);
 	add_edge(g, 2, 1, 3);
 	add_edge(g, 3, 2, 4);
 	add_edge(g, 4, 2, 2);
-	add_edge(g, 4, 3, 4);*/
+	add_edge(g, 4, 3, 4);
 
-	add_edge(g, 0, 1, 1);
-	add_edge(g, 0, 2, 2);
-	add_edge(g, 1, 2, 3);
-	add_edge(g, 2, 1, 4);
-	add_edge(g, 3, 2, 5);
+	/*add_edge(g, 4, 3, 7);
 	add_edge(g, 4, 2, 6);
-	add_edge(g, 4, 3, 7);
+	add_edge(g, 3, 2, 5);
+	add_edge(g, 2, 1, 4);
+	add_edge(g, 1, 2, 3);
+	add_edge(g, 0, 2, 2);
+	add_edge(g, 0, 1, 1);*/
 
 	int *e_idxs = (int *)calloc(g->e_count, sizeof(int));
 	int e_idxs_count = kruskal(g, e_idxs);
@@ -53,10 +53,10 @@ typedef struct {
 
 
 void shiftdown(int *idxs, weight_t *a, const count_t a_count, int p, int l){
-	if (p > a_count) return;
-
 	p -= 1;
 	l -= 1;
+
+	if (p >= a_count || l >= a_count) return;
 	weight_t pw = *(a+p)
 		, lw = *(a+l)
 		, rw = l+1 < a_count ? *(a+l+1) : -9999999;
@@ -85,13 +85,9 @@ int *heapsort(const weight_t *ws, const count_t w_count){
 		shiftdown(idxs, a, w_count, i, i*2);
 	}
 
-	for (int i = 0; i < w_count; i++) {
-		printf("weight:%d\n", *(a+i));
-	}
-	puts("");
-
 	int i = w_count;
-	while (i-->1) {
+	int root = 1;
+	while (i-->root) {
 		weight_t tmp = *a;
 		*a = *(a+i);
 		*(a+i) = tmp;
@@ -99,13 +95,7 @@ int *heapsort(const weight_t *ws, const count_t w_count){
 		int tmp_idx = *idxs;
 		*idxs = *(idxs+i);
 		*(idxs+i) = tmp_idx;
-		if (i > 1){
-			shiftdown(idxs, a, i, 1, 2);
-		}
-	}
-
-	for (int i = 0; i < w_count; i++) {
-		printf("weight:%d\n", *(a+i));
+		shiftdown(idxs, a, i, 1, 2);
 	}
 
 	free(a);
@@ -158,9 +148,6 @@ int kruskal(const graph_t *g, int *e_idxs){
 	}
 
 	int *idxs = heapsort(g->ws, g->e_count);
-	for (int i = 0; i < g->e_count; i++) {
-		printf("idx:%d\n", *(idxs+i));
-	}
 
 	int sube_count = 0, i = 0;
 	while (sube_count < g->v_count - 1
