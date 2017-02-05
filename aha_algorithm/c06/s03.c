@@ -54,11 +54,13 @@ weight_t *bellman_ford(graph_t *g, vertex_t vex, int *exist_circuit){
 		changed = 0;
 		m = g->arc_num;
 		while (m-->0) {
-			weight_t o_weight = *(t_weight+*(g->arc_evex+m));
-			weight_t n_weight = *(t_weight+*(g->arc_svex+m)) + *(g->arc_weight+m);
-			if (o_weight > n_weight) {
-				*(t_weight+*(g->arc_evex+m)) = n_weight;
-				changed = 1;
+			if (*(g->arc_svex+m) == vex) {
+				weight_t o_weight = *(t_weight+*(g->arc_evex+m));
+				weight_t n_weight = *(t_weight+*(g->arc_svex+m)) + *(g->arc_weight+m);
+				if (o_weight > n_weight) {
+					*(t_weight+*(g->arc_evex+m)) = n_weight;
+					changed = 1;
+				}
 			}
 		}
 	}
