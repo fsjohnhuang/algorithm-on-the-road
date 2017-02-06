@@ -13,88 +13,56 @@ typedef struct {
 graph_t *create_graph(const count_t);
 void add_edge(graph_t *, const vertex_t, const vertex_t, const weight_t);
 
-int dfs(graph_t *g, vertex_t root_vex, int *num, int idx, int *walked){
-	if (walked[root_vex]) return -1;
-
-	for (int i = 0; i < idx; i++) {
-		if (*(num+i) == root_vex) return i;
-	}
-	walked[root_vex] = 1;
-	for (int i = 0; i < g->e_count; i++) {
-		vertex_t svex = *(g->svexs+i);
-		vertex_t evex = *(g->evexs+i);
-		if (svex == *(num+idx) || evex == *(num+idx)) continue;
-
-		if (svex == root_vex || evex == root_vex) {
-			vertex_t nvex = svex == root_vex ? evex : svex;
-			int ret = dfs(g, nvex, num, idx, walked);
-			if (ret != -1) {
-				return ret;
-			}
-		}
-	}
-
-	walked[root_vex] = 0;
-	return -1;
+int min(int a, int b){
+	return a > b ? b : a;
+}
+int belong2(graph_t *g, int i, vertex_t curr){
+	return *(g->svexs+i) == curr || *(g->evexs+i) == curr;
 }
 
-int get_cut_vertexs(graph_t *g, vertex_t *cut_vexs){
-	int num[g->v_count], low[g->v_count];
-	for (int i = 0; i < g->v_count; i++) {
-		num[i] = low[i] = -1;
-	}
-	int idx = 0, vex = 0;
-	num[idx] = vex;
-	low[idx] = 0;
-	int walked1[g->v_count];
-	for (int i = 0; i < g->v_count; i++) {
-		walked1[i] = 0;
-	}
-	walked1[vex] = 1;
-
-	int s = g->v_count;
-	while(s-->1){
-		// 寻找子节点
-		int found = -1;
-		for (int i = 0; i < g->e_count && found == -1; i++) {
-			vertex_t svex = *(g->svexs+i);
-			vertex_t evex = *(g->evexs+i);
-			if (walked1[svex] && walked1[evex]) continue;
-			if (svex == vex || evex == vex) {
-				vex = svex == vex ? evex : svex;
-				walked1[vex] = 1;
-				found = 1;
+void dfs(graph_t *g, vertex_t *cut_vexs, int *num, int *low, int *timestamp, vertex_t cur, vertex_t father){
+	num[cur] = low[cur] = *timestamp;
+	*timestamp += 1;
+	for (int i = 0; i < g->e_count; i++) {
+		if (belong2(g, i, cur)) {
+			vertex_t next = *(g->svexs+i) == cur ? *(g->evexs+i) : *(g->svexs+i);
+			if (num[next] == 0) {
+				// 未访问过
+				dfs(g, cut_vexs, num, low, timestamp, next, cur);
+				low[cur] = min(low[cur], low[next]);
+				if (cur != father){
+					if ((num[cur] == 2 && low[next] > num[cur]) // 访问真正的根节点时
+							|| (num[cur] != 2 && low[next] == num[cur])) // 访问其他节点时
+					{
+						*(cut_vexs+cur) = 1;
+					}
+				}
+			}
+			else if(next != father){
+				// 访问过且不为父节点
+				low[cur] = min(num[next], low[cur]);
 			}
 		}
-		// 反向查找父＂时间戳＂
-		int walked[g->v_count];
-		for (int i = 0; i < g->v_count; i++) {
-			walked[i] = 0;
-		}
-		int a_idx = dfs(g, vex, num, idx++, walked);
-		if (a_idx == -1) {
-			// 找不到祖先节点
-			low[idx] = idx - 1;
-		}
-		else{
-			low[idx] = low[a_idx];
-		}
-		num[idx] = vex;
 	}
+}
 
-	int cut_vex_count = 0;
-	for (int i = 0; i < idx - 1; i++) {
-		if (low[i] != low[i+1]){
-			cut_vexs[cut_vex_count] = num[i];
-			cut_vex_count += 1;
-		}
+vertex_t *get_cut_vertexs(graph_t *g){
+	// 加入伪根节点，用于解决根节点为割点的情况
+	vertex_t pseudo_root = g->v_count - 1;
+	add_edge(g, pseudo_root, 0, pseudo_root);
+	int num[g->v_count], low[g->v_count];
+	for (int i = 0; i < g->v_count; i++) {
+		num[i] = low[i] = 0;
 	}
+	int timestamp = 1;
+	vertex_t *cut_vexs = (vertex_t *)calloc(g->v_count, sizeof(vertex_t));
+	dfs(g, cut_vexs, num, low, &timestamp, pseudo_root, pseudo_root);
 
-	return cut_vex_count;
+	return cut_vexs;
 }
 
 int main(int argc, int **argv){
-	graph_t *g = create_graph(5);
+	graph_t *g = create_graph(6);
 	add_edge(g, 0, 1, 3);
 	add_edge(g, 0, 2, 2);
 	add_edge(g, 1, 2, 3);
@@ -103,11 +71,12 @@ int main(int argc, int **argv){
 	add_edge(g, 4, 2, 2);
 	add_edge(g, 4, 3, 4);
 
-	vertex_t cut_vexs[g->v_count];
-	int cut_vex_count = get_cut_vertexs(g, cut_vexs);
+	vertex_t *cut_vexs = get_cut_vertexs(g);
 
-	for (int i = 0; i < cut_vex_count; i++) {
-		printf("e:%d\n", cut_vexs[i]);
+	for (int i = 0; i < g->v_count; i++) {
+		if (*(cut_vexs+i) == 1) {
+			printf("cut_vertex:%d\n", i);
+		}
 	}
 
 	return 0;
