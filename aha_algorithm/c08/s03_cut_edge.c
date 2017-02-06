@@ -20,7 +20,7 @@ int belong2(graph_t *g, int i, vertex_t curr){
 	return *(g->svexs+i) == curr || *(g->evexs+i) == curr;
 }
 
-void dfs(graph_t *g, vertex_t *cut_vexs, int *num, int *low, int *timestamp, vertex_t cur, vertex_t father){
+void dfs(graph_t *g, int *cut_edges, int *num, int *low, int *timestamp, vertex_t cur, vertex_t father){
 	num[cur] = low[cur] = *timestamp;
 	*timestamp += 1;
 	for (int i = 0; i < g->e_count; i++) {
@@ -28,13 +28,13 @@ void dfs(graph_t *g, vertex_t *cut_vexs, int *num, int *low, int *timestamp, ver
 			vertex_t next = *(g->svexs+i) == cur ? *(g->evexs+i) : *(g->svexs+i);
 			if (num[next] == 0) {
 				// 未访问过
-				dfs(g, cut_vexs, num, low, timestamp, next, cur);
+				dfs(g, cut_edges, num, low, timestamp, next, cur);
 				low[cur] = min(low[cur], low[next]);
 				if (cur != father){
 					if (low[next] > num[cur]                         // 访问真正根节点和其他节点时
 							|| (num[cur] != 2 && low[next] == num[cur])) // 访问其他节点时
 					{
-						*(cut_vexs+cur) = 1;
+						*(cut_edges+i) = 1;
 					}
 				}
 			}
@@ -46,7 +46,7 @@ void dfs(graph_t *g, vertex_t *cut_vexs, int *num, int *low, int *timestamp, ver
 	}
 }
 
-vertex_t *get_cut_vertexs(graph_t *g){
+int *get_cut_edges(graph_t *g){
 	// 加入伪根节点，用于解决根节点为割点的情况
 	vertex_t pseudo_root = g->v_count - 1;
 	add_edge(g, pseudo_root, 0, pseudo_root);
@@ -55,10 +55,10 @@ vertex_t *get_cut_vertexs(graph_t *g){
 		num[i] = low[i] = 0;
 	}
 	int timestamp = 1;
-	vertex_t *cut_vexs = (vertex_t *)calloc(g->v_count, sizeof(vertex_t));
-	dfs(g, cut_vexs, num, low, &timestamp, pseudo_root, pseudo_root);
+	int *cut_edges = (int *)calloc(g->e_count, sizeof(int));
+	dfs(g, cut_edges, num, low, &timestamp, pseudo_root, pseudo_root);
 
-	return cut_vexs;
+	return cut_edges;
 }
 
 int main(int argc, int **argv){
@@ -69,13 +69,12 @@ int main(int argc, int **argv){
 	add_edge(g, 2, 1, 3);
 	add_edge(g, 3, 2, 4);
 	add_edge(g, 4, 2, 2);
-	add_edge(g, 4, 3, 4);
 
-	vertex_t *cut_vexs = get_cut_vertexs(g);
+	int *cut_edges = get_cut_edges(g);
 
-	for (int i = 0; i < g->v_count; i++) {
-		if (*(cut_vexs+i) == 1) {
-			printf("cut_vertex:%d\n", i);
+	for (int i = 0; i < g->e_count; i++) {
+		if (*(cut_edges+i) == 1) {
+			printf("cut_edge:%d\n", i);
 		}
 	}
 
